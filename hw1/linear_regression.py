@@ -3,45 +3,116 @@
 import sys
 import codecs # for python3 utf-8 decode
 import math
-#import numpy as np  # for gradient calculation
+#import numpy as np
 from decimal import *
 
 train = sys.argv[1]
 test = open(sys.argv[2], 'r')
 ofile = open("linear_regression.csv", 'w')
-table = []
 
+table = []
+a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17 = [],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]
 with codecs.open(train,"r",encoding='utf-8',errors='ignore') as f:
     for line in f:
         tokens = line.split(',')
-        if (tokens[2] == 'RAINFALL'):
+        if tokens[2] == 'AMB_TEMP':
+            for i in range(3, len(tokens)):
+                a0.append(tokens[i])
+        elif tokens[2] == 'CH4':
+            for i in range(3, len(tokens)):
+                a1.append(tokens[i])
+        elif tokens[2] == 'CO':
+            for i in range(3, len(tokens)):
+                a2.append(tokens[i])
+        elif tokens[2] == 'NMHC':
+            for i in range(3, len(tokens)):
+                a3.append(tokens[i])
+        elif tokens[2] == 'NO':
+            for i in range(3, len(tokens)):
+                a4.append(tokens[i])
+        elif tokens[2] == 'NO2':
+            for i in range(3, len(tokens)):
+                a5.append(tokens[i])
+        elif tokens[2] == 'NOx':
+            for i in range(3, len(tokens)):
+                a6.append(tokens[i])
+        elif tokens[2] == 'O3':
+            for i in range(3, len(tokens)):
+                a7.append(tokens[i])
+        elif tokens[2] == 'PM10':
+            for i in range(3, len(tokens)):
+                a8.append(tokens[i])
+        elif tokens[2] == 'PM2.5':
+            for i in range(3, len(tokens)):
+                a9.append(tokens[i])
+        elif tokens[2] == 'RH':
+            for i in range(3, len(tokens)):
+                a11.append(tokens[i])
+        elif tokens[2] == 'SO2':
+            for i in range(3, len(tokens)):
+                a12.append(tokens[i])
+        elif tokens[2] == 'THC':
+            for i in range(3, len(tokens)):
+                a13.append(tokens[i])
+        elif tokens[2] == 'WD_HR':
+            for i in range(3, len(tokens)):
+                a14.append(tokens[i])
+        elif tokens[2] == 'WIND_DIREC':
+            for i in range(3, len(tokens)):
+                a15.append(tokens[i])
+        elif tokens[2] == 'WIND_SPEED':
+            for i in range(3, len(tokens)):
+                a16.append(tokens[i])
+        elif tokens[2] == 'WS_HR':
+            for i in range(3, len(tokens)):
+                a17.append(tokens[i])
+        elif (tokens[2] == 'RAINFALL'):
             for i in range(len(tokens)):
                 if tokens[i] == 'NR':
                     tokens[i] = 0
                 elif tokens[i] == 'NR\r\n':
                     tokens[i] = 0
-        table.append(tokens)
+            for i in range(3, len(tokens)):
+                a10.append(tokens[i])
+table.append(a0)
+table.append(a1)
+table.append(a2)
+table.append(a3)
+table.append(a4)
+table.append(a5)
+table.append(a6)
+table.append(a7)
+table.append(a8)
+table.append(a9)
+table.append(a10)
+table.append(a11)
+table.append(a12)
+table.append(a13)
+table.append(a14)
+table.append(a15)
+table.append(a16)
+table.append(a17)
 ####################################################
 
-#iteration = 2000
+iteration = 10000
 master_stepsize = 10
 fudge_factor = 0
 autocorr = 0
-alpha = 0.00042
-stop_point = 0.1
+alpha = 0.00038
+stop_point = 1e-4
 ol ,nl = 0, 0
 
 b = 0
 historical_grad_B = 0
 
 
-back =            7
-back_10 =         7
+back =            9
+back_10 =         5
 back_RH =         0
 back_NO =         0
 back_NO2 =        4
 back_NOx =        0
-back_O3 =         3
+back_O3 =         8
 back_SO2 =        0
 back_CO =         0
 back_THC =        3
@@ -196,173 +267,223 @@ while True:
     TERM_AMB_TEMP = [0] * back_AMB_TEMP
     TERM_CH4 = [0] * back_CH4
     TERM_RAINFALL = [0] * back_RAINFALL
-    for i in range(10, len(table), 18):
-        for s in range(3, len(table[i]) - back):
-            for k in range(back):
-                data[back - 1 - k] = float(table[i][s + k])
-            _y = float(table[i][s + back])
-            y = b
-            for n in range(back):
-                y += data[n] * term[n]
+    for s in range(len(table[9]) - back_max):
+        _y = float(table[9][s + back_max])
+        y = b
+        for k in range(back):
+            data[back - 1 - k] = float(table[9][s + (back_max - back) + k])
+        for n in range(back):
+            y += data[n] * term[n]
 
-            for k in range(back_10):
-                data_10[back_10 - 1 - k] = float(table[i-1][s + (back_max - back_10) + k])
-            for n in range(back_10):
-                y += data_10[n] * term_10[n]
+        for k in range(back_10):
+            data_10[back_10 - 1 - k] = float(table[9-1][s + (back_max - back_10) + k])
+        for n in range(back_10):
+            y += data_10[n] * term_10[n]
 
-            for k in range(back_RH):
-                data_RH[back_RH - 1 - k] = float(table[i+2][s + (back_max - back_RH) + k])
-            for n in range(back_RH):
-                y += data_RH[n] * term_RH[n]
-            
-            for k in range(back_NO):
-                data_NO[back_NO - 1 - k] = float(table[i-5][s + (back_max - back_NO) + k])
-            for n in range(back_NO):
-                y += data_NO[n] * term_NO[n]
-            
-            for k in range(back_NO2):
-                data_NO2[back_NO2 - 1 - k] = float(table[i-4][s + (back_max - back_NO2) + k])
-            for n in range(back_NO2):
-                y += data_NO2[n] * term_NO2[n]
+        for k in range(back_RH):
+            data_RH[back_RH - 1 - k] = float(table[9+2][s + (back_max - back_RH) + k])
+        for n in range(back_RH):
+            y += data_RH[n] * term_RH[n]
+        
+        for k in range(back_NO):
+            data_NO[back_NO - 1 - k] = float(table[9-5][s + (back_max - back_NO) + k])
+        for n in range(back_NO):
+            y += data_NO[n] * term_NO[n]
+        
+        for k in range(back_NO2):
+            data_NO2[back_NO2 - 1 - k] = float(table[9-4][s + (back_max - back_NO2) + k])
+        for n in range(back_NO2):
+            y += data_NO2[n] * term_NO2[n]
 
-            for k in range(back_NOx):
-                data_NOx[back_NOx - 1 - k] = float(table[i-3][s + (back_max - back_NOx) + k])
-            for n in range(back_NOx):
-                y += data_NOx[n] * term_NOx[n]
-            
-            for k in range(back_O3):
-                data_O3[back_O3 - 1 - k] = float(table[i-2][s + (back_max - back_O3) + k])
-            for n in range(back_O3):
-                y += data_O3[n] * term_O3[n]
-            
-            for k in range(back_SO2):
-                data_SO2[back_SO2 - 1 - k] = float(table[i+3][s + (back_max - back_SO2) + k])
-            for n in range(back_SO2):
-                y += data_SO2[n] * term_SO2[n]
-            
-            for k in range(back_CO):
-                data_CO[back_CO - 1 - k] = float(table[i-7][s + (back_max - back_CO) + k])
-            for n in range(back_CO):
-                y += data_CO[n] * term_CO[n]
-            
-            for k in range(back_THC):
-                data_THC[back_THC - 1 - k] = float(table[i+4][s + (back_max - back_THC) + k])
-            for n in range(back_THC):
-                y += data_THC[n] * term_THC[n]
-            
-            for k in range(back_NMHC):
-                data_NMHC[back_NMHC - 1 - k] = float(table[i-6][s + (back_max - back_NMHC) + k])
-            for n in range(back_NMHC):
-                y += data_NMHC[n] * term_NMHC[n]
-            
-            for k in range(back_WD_HR):
-                data_WD_HR[back_WD_HR - 1 - k] = float(table[i+5][s + (back_max - back_WD_HR) + k])
-            for n in range(back_WD_HR):
-                y += data_WD_HR[n] * term_WD_HR[n]
-            
-            for k in range(back_WIND_DIREC):
-                data_WIND_DIREC[back_WIND_DIREC - 1 - k] = float(table[i+6][s + (back_max - back_WIND_DIREC) + k])
-            for n in range(back_WIND_DIREC):
-                y += data_WIND_DIREC[n] * term_WIND_DIREC[n]
-            
-            for k in range(back_WIND_SPEED):
-                data_WIND_SPEED[back_WIND_SPEED - 1 - k] = float(table[i+7][s + (back_max - back_WIND_SPEED) + k])
-            for n in range(back_WIND_SPEED):
-                y += data_WIND_SPEED[n] * term_WIND_SPEED[n]
-            
-            for k in range(back_WS_HR):
-                data_WS_HR[back_WS_HR - 1 - k] = float(table[i+8][s + (back_max - back_WS_HR) + k])
-            for n in range(back_WS_HR):
-                y += data_WS_HR[n] * term_WS_HR[n]
-            
-            for k in range(back_AMB_TEMP):
-                data_AMB_TEMP[back_AMB_TEMP - 1 - k] = float(table[i-9][s + (back_max - back_AMB_TEMP) + k])
-            for n in range(back_AMB_TEMP):
-                y += data_AMB_TEMP[n] * term_AMB_TEMP[n]
-            
-            for k in range(back_CH4):
-                data_CH4[back_CH4 - 1 - k] = float(table[i-8][s + (back_max - back_CH4) + k])
-            for n in range(back_CH4):
-                y += data_CH4[n] * term_CH4[n]
-            
-            for k in range(back_RAINFALL):
-                data_RAINFALL[back_RAINFALL - 1 - k] = float(table[i+1][s + (back_max - back_RAINFALL) + k])
-            for n in range(back_RAINFALL):
-                y += data_RAINFALL[n] * term_RAINFALL[n]
+        for k in range(back_NOx):
+            data_NOx[back_NOx - 1 - k] = float(table[9-3][s + (back_max - back_NOx) + k])
+        for n in range(back_NOx):
+            y += data_NOx[n] * term_NOx[n]
+        
+        for k in range(back_O3):
+            data_O3[back_O3 - 1 - k] = float(table[9-2][s + (back_max - back_O3) + k])
+        for n in range(back_O3):
+            y += data_O3[n] * term_O3[n]
+        
+        for k in range(back_SO2):
+            data_SO2[back_SO2 - 1 - k] = float(table[9+3][s + (back_max - back_SO2) + k])
+        for n in range(back_SO2):
+            y += data_SO2[n] * term_SO2[n]
+        
+        for k in range(back_CO):
+            data_CO[back_CO - 1 - k] = float(table[9-7][s + (back_max - back_CO) + k])
+        for n in range(back_CO):
+            y += data_CO[n] * term_CO[n]
+        
+        for k in range(back_THC):
+            data_THC[back_THC - 1 - k] = float(table[9+4][s + (back_max - back_THC) + k])
+        for n in range(back_THC):
+            y += data_THC[n] * term_THC[n]
+        
+        for k in range(back_NMHC):
+            data_NMHC[back_NMHC - 1 - k] = float(table[9-6][s + (back_max - back_NMHC) + k])
+        for n in range(back_NMHC):
+            y += data_NMHC[n] * term_NMHC[n]
+        
+        for k in range(back_WD_HR):
+            data_WD_HR[back_WD_HR - 1 - k] = float(table[9+5][s + (back_max - back_WD_HR) + k])
+        for n in range(back_WD_HR):
+            y += data_WD_HR[n] * term_WD_HR[n]
+        
+        for k in range(back_WIND_DIREC):
+            data_WIND_DIREC[back_WIND_DIREC - 1 - k] = float(table[9+6][s + (back_max - back_WIND_DIREC) + k])
+        for n in range(back_WIND_DIREC):
+            y += data_WIND_DIREC[n] * term_WIND_DIREC[n]
+        
+        for k in range(back_WIND_SPEED):
+            data_WIND_SPEED[back_WIND_SPEED - 1 - k] = float(table[9+7][s + (back_max - back_WIND_SPEED) + k])
+        for n in range(back_WIND_SPEED):
+            y += data_WIND_SPEED[n] * term_WIND_SPEED[n]
+        
+        for k in range(back_WS_HR):
+            data_WS_HR[back_WS_HR - 1 - k] = float(table[9+8][s + (back_max - back_WS_HR) + k])
+        for n in range(back_WS_HR):
+            y += data_WS_HR[n] * term_WS_HR[n]
+        
+        for k in range(back_AMB_TEMP):
+            data_AMB_TEMP[back_AMB_TEMP - 1 - k] = float(table[9-9][s + (back_max - back_AMB_TEMP) + k])
+        for n in range(back_AMB_TEMP):
+            y += data_AMB_TEMP[n] * term_AMB_TEMP[n]
+        
+        for k in range(back_CH4):
+            data_CH4[back_CH4 - 1 - k] = float(table[9-8][s + (back_max - back_CH4) + k])
+        for n in range(back_CH4):
+            y += data_CH4[n] * term_CH4[n]
+        
+        for k in range(back_RAINFALL):
+            data_RAINFALL[back_RAINFALL - 1 - k] = float(table[9+1][s + (back_max - back_RAINFALL) + k])
+        for n in range(back_RAINFALL):
+            y += data_RAINFALL[n] * term_RAINFALL[n]
 
-            L += (_y - y) ** 2
-            count += 1
-            B += (-2 * (_y - y))
-            for n in range(back):
-                TERM[n] += 2 * (_y - y) * (-data[n])
-            for n in range(back_10):
-                TERM_10[n] += 2 * (_y - y) * (-data_10[n])
-            for n in range(back_RH):
-                TERM_RH[n] += 2 * (_y - y) * (-data_RH[n])
-            for n in range(back_NO):
-                TERM_NO[n] += 2 * (_y - y) * (-data_NO[n])
-            for n in range(back_NO2):
-                TERM_NO2[n] += 2 * (_y - y) * (-data_NO2[n])
-            for n in range(back_NOx):
-                TERM_NOx[n] += 2 * (_y - y) * (-data_NOx[n])
-            for n in range(back_O3):
-                TERM_O3[n] += 2 * (_y - y) * (-data_O3[n])
-            for n in range(back_SO2):
-                TERM_SO2[n] += 2 * (_y - y) * (-data_SO2[n])
-            for n in range(back_CO):
-                TERM_CO[n] += 2 * (_y - y) * (-data_CO[n])
-            for n in range(back_THC):
-                TERM_THC[n] += 2 * (_y - y) * (-data_THC[n])
-            for n in range(back_NMHC):
-                TERM_NMHC[n] += 2 * (_y - y) * (-data_NMHC[n])
-            for n in range(back_WD_HR):
-                TERM_WD_HR[n] += 2 * (_y - y) * (-data_WD_HR[n])
-            for n in range(back_WIND_DIREC):
-                TERM_WIND_DIREC[n] += 2 * (_y - y) * (-data_WIND_DIREC[n])
-            for n in range(back_WIND_SPEED):
-                TERM_WIND_SPEED[n] += 2 * (_y - y) * (-data_WIND_SPEED[n])
-            for n in range(back_WS_HR):
-                TERM_WS_HR[n] += 2 * (_y - y) * (-data_WS_HR[n])
-            for n in range(back_AMB_TEMP):
-                TERM_AMB_TEMP[n] += 2 * (_y - y) * (-data_AMB_TEMP[n])
-            for n in range(back_CH4):
-                TERM_CH4[n] += 2 * (_y - y) * (-data_CH4[n])
-            for n in range(back_RAINFALL):
-                TERM_RAINFALL[n] += 2 * (_y - y) * (-data_RAINFALL[n])
+        L += (_y - y) ** 2
+        count += 1
+        B += (-2 * (_y - y))
+        for n in range(back):
+            TERM[n] += 2 * (_y - y) * (-data[n])
+        for n in range(back_10):
+            TERM_10[n] += 2 * (_y - y) * (-data_10[n])
+        for n in range(back_RH):
+            TERM_RH[n] += 2 * (_y - y) * (-data_RH[n])
+        for n in range(back_NO):
+            TERM_NO[n] += 2 * (_y - y) * (-data_NO[n])
+        for n in range(back_NO2):
+            TERM_NO2[n] += 2 * (_y - y) * (-data_NO2[n])
+        for n in range(back_NOx):
+            TERM_NOx[n] += 2 * (_y - y) * (-data_NOx[n])
+        for n in range(back_O3):
+            TERM_O3[n] += 2 * (_y - y) * (-data_O3[n])
+        for n in range(back_SO2):
+            TERM_SO2[n] += 2 * (_y - y) * (-data_SO2[n])
+        for n in range(back_CO):
+            TERM_CO[n] += 2 * (_y - y) * (-data_CO[n])
+        for n in range(back_THC):
+            TERM_THC[n] += 2 * (_y - y) * (-data_THC[n])
+        for n in range(back_NMHC):
+            TERM_NMHC[n] += 2 * (_y - y) * (-data_NMHC[n])
+        for n in range(back_WD_HR):
+            TERM_WD_HR[n] += 2 * (_y - y) * (-data_WD_HR[n])
+        for n in range(back_WIND_DIREC):
+            TERM_WIND_DIREC[n] += 2 * (_y - y) * (-data_WIND_DIREC[n])
+        for n in range(back_WIND_SPEED):
+            TERM_WIND_SPEED[n] += 2 * (_y - y) * (-data_WIND_SPEED[n])
+        for n in range(back_WS_HR):
+            TERM_WS_HR[n] += 2 * (_y - y) * (-data_WS_HR[n])
+        for n in range(back_AMB_TEMP):
+            TERM_AMB_TEMP[n] += 2 * (_y - y) * (-data_AMB_TEMP[n])
+        for n in range(back_CH4):
+            TERM_CH4[n] += 2 * (_y - y) * (-data_CH4[n])
+        for n in range(back_RAINFALL):
+            TERM_RAINFALL[n] += 2 * (_y - y) * (-data_RAINFALL[n])
     if back_10 != 0:
-        print("PM10: %s" % term_10)
+        G = 0
+        for i in term_10:
+            G += i
+        print("PM10: %.4f" % G)
     if back_NO != 0:
-        print("NO: %s"% term_NO)
+        G = 0
+        for i in term_NO:
+            G += i
+        print("NO: %.4f"% G)
     if back_NO2 != 0:
-        print("NO2: %s"% term_NO2)
+        G = 0
+        for i in term_NO2:
+            G += i
+        print("NO2: %.4f"% G)
     if back_NOx != 0:
-        print("NOx: %s"% term_NOx)
+        G = 0
+        for i in term_NOx:
+            G += i
+        print("NOx: %.4f"% G)
     if back_RH != 0:
-        print("RH: %s"% term_RH)
+        G = 0
+        for i in term_RH:
+            G += i
+        print("RH: %.4f"% G)
     if back_O3 != 0:
-        print("O3: %s"% term_O3)
+        G = 0
+        for i in term_O3:
+            G += i
+        print("O3: %.4f"% G)
     if back_CO != 0:
-        print("CO: %s"% term_CO)
+        G = 0
+        for i in term_CO:
+            G += i
+        print("CO: %.4f"% G)
     if back_SO2 != 0:
-        print("SO2: %s"% term_SO2)
+        G = 0
+        for i in term_SO2:
+            G += i
+        print("SO2: %.4f"% G)
     if back_THC != 0:
-        print("THC: %s"% term_THC)
+        G = 0
+        for i in term_THC:
+            G += i
+        print("THC: %.4f"% G)
     if back_NMHC != 0:
-        print("NMHC: %s"% term_NMHC)
+        G = 0
+        for i in term_NMHC:
+            G += i
+        print("NMHC: %.4f"% G)
     if back_WD_HR != 0:
-        print("WD_HR: %s"% term_WD_HR)
+        G = 0
+        for i in term_WD_HR:
+            G += i
+        print("WD_HR: %.4f"% G)
     if back_WIND_DIREC != 0:
-        print("WIND_DIREC: %s"% term_WIND_DIREC)
+        G = 0
+        for i in term_WIND_DIREC:
+            G += i
+        print("WIND_DIREC: %.4f"% G)
     if back_WIND_SPEED != 0:
-        print("WIND_SPEED: %s"% term_WIND_SPEED)
+        G = 0
+        for i in term_WIND_SPEED:
+            G += i
+        print("WIND_SPEED: %.4f"% G)
     if back_WS_HR != 0:
-        print("WS_HR: %s"% term_WS_HR)
+        G = 0
+        for i in term_WS_HR:
+            G += i
+        print("WS_HR: %.4f"% G)
     if back_AMB_TEMP != 0:
-        print("AMB_TEMP: %s"% term_AMB_TEMP)
+        G = 0
+        for i in term_AMB_TEMP:
+            G += i
+        print("AMB_TEMP: %.4f"% G)
     if back_CH4 != 0:
-        print("CH4: %s"% term_CH4)
+        G = 0
+        for i in term_CH4:
+            G += i
+        print("CH4: %.4f"% G)
     if back_RAINFALL != 0:
-        print("RAINFALL: %s"% term_RAINFALL)
+        G = 0
+        for i in term_RAINFALL:
+            G += i
+        print("RAINFALL: %.4f"% G)
     print(z, L, (L/count)**0.5)
     print("\n")
 

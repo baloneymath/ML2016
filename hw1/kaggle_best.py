@@ -107,16 +107,16 @@ historical_grad_B = 0
 
 
 back =            9
-back_10 =         7
+back_10 =         5
 back_RH =         0
 back_NO =         0
-back_NO2 =        1
-back_NOx =        4
+back_NO2 =        4
+back_NOx =        0
 back_O3 =         8
 back_SO2 =        0
-back_CO =         1
-back_THC =        0
-back_NMHC =       7
+back_CO =         0
+back_THC =        3
+back_NMHC =       2
 back_WD_HR =      0
 back_WIND_DIREC = 0
 back_WIND_SPEED = 2

@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+
+\usepackage{fancyhdr}
+\usepackage{extramarks}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+%\usepackage{fontspec}
+\usepackage{amsfonts}
+\usepackage{xeCJK}
+\usepackage{algpseudocode}
+\usepackage{listings}
+%%plots
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest} % Allows to place the legend below plot
+\usepgfplotslibrary{units} % Allows to enter the units nicely
+\setCJKmainfont{WenQuanYi Micro Hei}
+
+%
+% Basic Document Settings
+%
+
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+\pagestyle{fancy}
+\lhead{\AuthorName}
+\chead{\Class\ (\ClassInstructor\ \ClassTime): \Title}
+\rhead{\firstxmark}
+\lfoot{\lastxmark}
+\cfoot{\thepage}
+
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+
+\setlength\parindent{0pt}
+
+\newcommand{\Title}{HW1}
+\newcommand{\FinishDate}{\today}
+\newcommand{\Class}{Machine Learning}
+\newcommand{\ClassTime}{}
+\newcommand{\ClassInstructor}{Professor Hung-Yi Lee}
+\newcommand{\Department}{EE3}
+\newcommand{\AuthorID}{b03901016}
+\newcommand{\AuthorName}{陳昊}
+
+%util
+\newcommand{\horline}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+\newcommand\n{\mbox{\qquad}}
+
+%
+% Title Page
+%
+
+\title{
+{National Taiwan University}\\    
+    \textmd{\textbf{\Class:\ \Title}}
+}
+
+\author{
+	\Department \ \AuthorID \\
+	\textbf{\AuthorName}
+}
+\date{
+	\today \\
+	\horline{1pt}
+}
+
+
+
+\renewcommand{\part}[1]{\textbf{\large Part \Alph{partCounter}}\stepcounter{partCounter}\\}
+
+%
+% Various Helper Commands
+%
+
+% Useful for algorithms
+\newcommand{\alg}[1]{\textsc{\bfseries \footnotesize #1}}
+
+% For derivatives
+\newcommand{\deriv}[1]{\frac{\mathrm{d}}{\mathrm{d}x} (#1)}
+
+% For partial derivatives
+\newcommand{\pderiv}[2]{\frac{\partial}{\partial #1} (#2)}
+
+% Integral dx
+\newcommand{\dx}{\mathrm{d}x}
+% Alias for the Solution section header
+\newcommand{\solution}{\textbf{\large Solution}}
+
+% Probability commands: Expectation, Variance, Covariance, Bias
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Bias}{\mathrm{Bias}}
+
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+\n This program is aim to predict the value of $PM2.5$, according to the previous data of the weather station. There are not just the data of $PM2.5$ in the training set, but including some other features like $PM10$, $NO_2$, $RAINFALL$....,etc. The core concept of this program is based on \textbf{linear regression}, using \textbf{gradient descent}.
+
+\section{Method}
+\n The way I design this program is, first chain all the training data together, I create a table includes 18 arrays which contains different features respectively, then append all the data to the corresponding array. The next step is to decide which feature to use and how many hours(from 0 to 9) to trace back to construct the model. In addition to these features, I also use the method of \textbf{Momentum} and \textbf{Adagrad} to improve the efficiency of gradient descent. The final design of this program is with trace back features: (Since term $RAINFALL$ in training data has none numerical value 'NR', I change 'NR' to 0)\\
+\begin{tabular}[t]{|l|c|c|c|c|c|c|c|c|c|c|}
+	\hline
+	feature & $PM2.5$ & $PM10$ & $NO_2$ & $O_3$ & $WIND\_SPEED$ & $WS\_HR$ & $CH_4$ & 	$RAINFALL$\\
+	\hline 
+	trace back & 9 & 5 & 4 & 3 & 2 & 1 & 1 & 2\\
+	\hline
+\end{tabular} 
+\\ \\ 
+\n (My best grade on kaggle is base on this model.)
+
+\section{Regularization}
+\n Regularization is to add an extra term to the loss function to make it smoother, now the loss function is written as
+\[ y = b + \sum w_i x_i \]
+\begin{equation}
+	L = \sum_n (\widehat{y}^n - y)^2 + \lambda \sum w_i^2
+\end{equation}
+\n ($\widehat{y}^n$ is the real data, while $y$ is the value that calculate by the model designed before.)\\
+	With regularization, the result should be better theoretically. However, I did not gain any improvement using regularization, it went worse than before even  I tried several different values of $\lambda$. So I decided not to use it in my program. 
+
+\section{Learning rate}
+\n In this program, I use some methods to improve the efficiency of gradient descent. The first one is \textbf{Momentum}, while the other is \textbf{Adagrad}.The trivial gradient descent has the formula:
+	\begin{equation}
+		w = w - \eta \sum_i \nabla Q_i(w)
+	\end{equation}
+where $w$ is the weight of each feature, $\eta$ is learning rate, $Q(w)$ is the loss function. In my best designed model, the value of $\eta$ is set to 10.
+\subsection{Momentum}
+\n Momentum is a method to improve gradient descent, it stores the update $\Delta w$ at each iteration, now we can rewrite the formula of as:
+	\begin{equation}
+		w = w - \eta \sum_i \nabla Q_i(w) + \alpha \Delta w
+	\end{equation}
+with the appropriate adjustment of $\alpha$ (from 0 to 1), we can make it faster to the destination of gradient descent and have better result. In my program, I design $\alpha$ to be 0.00038, which has the best performance. 
+\subsection{Adagrad}
+\n Adagrad is another good way to adjust learning rate, it efficiently prevent the step being too big that may cause the loss function to explode and have efficient improvement further. We can now rewrite equation(2) as:
+	\begin{equation}
+		w_t = w_t - \eta \frac{\sum_i \nabla Q_i(w)}{\sqrt{\sum_{k=0}^{t-1} w_k^2}} + \alpha \Delta w
+	\end{equation}
+where $w_k$'s are previous weights. In my observation, \textbf{Adagrad} is more useful with respect to \textbf{Momentum}. \\
+\n Another version of \textbf{Adagrad} adds a new parameter $corr$, which sometimes have better performance than the former version. The formula is written as:
+\begin{align*}
+	&his\_grad = his\_grad \times corr + (1-corr) \times w_i^2 \\
+ 	&w_t = w_t - \eta \frac{\sum_i \nabla Q_i(w)}{\sqrt{his\_grad}} + \alpha \Delta w
+\end{align*}
+where $his\_grad$ are the sum of the historical gradient value.\\
+\n However, I design the value $corr$ to be 0 in my best model, the formula then behaves as same as equation(4).
+\end{document}

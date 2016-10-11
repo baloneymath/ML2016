@@ -8,7 +8,7 @@ from decimal import *
 
 train = sys.argv[1]
 test = open(sys.argv[2], 'r')
-ofile = open("linear_regression.csv", 'w')
+ofile = open("kaggle_best.csv", 'w')
 
 table = []
 a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17 = [],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]
@@ -112,18 +112,18 @@ back_RH =         0
 back_NO =         0
 back_NO2 =        4
 back_NOx =        0
-back_O3 =         8
+back_O3 =         3
 back_SO2 =        0
 back_CO =         0
-back_THC =        3
-back_NMHC =       2
+back_THC =        0
+back_NMHC =       0
 back_WD_HR =      0
 back_WIND_DIREC = 0
 back_WIND_SPEED = 2
 back_WS_HR =      1
 back_AMB_TEMP =   0
-back_CH4 =        0
-back_RAINFALL =   0
+back_CH4 =        1
+back_RAINFALL =   2
 
 back_max = max(back,back_10,back_RH,back_NO,back_NO2,back_NOx,back_O3,
         back_SO2,back_CO,back_THC,back_NMHC,back_WD_HR,back_WIND_DIREC,back_WIND_SPEED,

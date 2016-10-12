@@ -109,8 +109,13 @@
 \begin{document}
 \maketitle
 
-\section{Introduction}
+\section{Linear regression}
 \n This program is aim to predict the value of $PM2.5$, according to the previous data of the weather station. There are not just the data of $PM2.5$ in the training set, but including some other features like $PM10$, $NO_2$, $RAINFALL$....,etc. The core concept of this program is based on \textbf{linear regression}, using \textbf{gradient descent}.
+\begin{align*}
+	&y = b + \sum w_i x_i \\
+	&L = \sum_n (\widehat{y}^n - y)^2 
+\end{align*}
+the above equations is the main idea of linear regression and gradient descent, where $L$ is the loss function, $b$ is bias, $w$ is weights and $x$, $\widehat{y}$ is the real data.
 
 \section{Method}
 \n The way I design this program is, first chain all the training data together, I create a table includes 18 arrays which contains different features respectively, then append all the data to the corresponding array. The next step is to decide which feature to use and how many hours(from 0 to 9) to trace back to construct the model. In addition to these features, I also use the method of \textbf{Momentum} and \textbf{Adagrad} to improve the efficiency of gradient descent. The final design of this program is with trace back features: (Since term $RAINFALL$ in training data has none numerical value 'NR', I change 'NR' to 0)\\

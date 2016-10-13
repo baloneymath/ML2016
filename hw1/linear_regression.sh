@@ -1,2 +1,3 @@
 #!/bin/bash
-python linear_regression.py data/train.csv data/test_X.csv
+time pypy linear_regression.py data/train.csv data/test_X.csv
+pypy check.py

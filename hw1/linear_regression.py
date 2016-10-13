@@ -98,13 +98,15 @@ iteration = 10000
 master_stepsize = 10
 fudge_factor = 0
 autocorr = 0
-alpha = 0.00038
-stop_point = 1e-4
+alpha = 0.000
+stop_point = 1e-2
 ol ,nl = 0, 0
 
 b = 0
 historical_grad_B = 0
 
+back_2 = 4
+back_10_2 = 2
 
 back =            9
 back_10 =         5
@@ -117,12 +119,12 @@ back_SO2 =        0
 back_CO =         0
 back_THC =        0
 back_NMHC =       0
-back_WD_HR =      2
+back_WD_HR =      0
 back_WIND_DIREC = 0
-back_WIND_SPEED = 2
+back_WIND_SPEED = 0
 back_WS_HR =      0
-back_AMB_TEMP =   2
-back_CH4 =        1
+back_AMB_TEMP =   0
+back_CH4 =        0
 back_RAINFALL =   2
 
 back_max = max(back,back_10,back_RH,back_NO,back_NO2,back_NOx,back_O3,
@@ -134,12 +136,20 @@ data = [0] * back
 term = [0] * back
 grad = [0] * back # grad
 test_data = [0] * back
+data_2 = [0] * back_2
+term_2 = [0] * back_2
+grad_2 = [0] * back_2
+test_data_2 = [0] * back_2
 
 # PM10
 data_10 = [0] * back_10
 term_10 = [0] * back_10
 grad_10 = [0] * back_10
 test_data_10 = [0] * back_10
+data_10_2 = [0] * back_10_2
+term_10_2 = [0] * back_10_2
+grad_10_2 = [0] * back_10_2
+test_data_10_2 = [0] * back_10_2
 
 # RH
 data_RH = [0] * back_RH
@@ -250,7 +260,9 @@ while True:
     _y = 0
     L = 0
     TERM = [0] * back # store grad
+    TERM_2 = [0] * back_2
     TERM_10 = [0] * back_10 # store grad
+    TERM_10_2 = [0] * back_10_2
     TERM_RH = [0] * back_RH
     TERM_NO = [0] * back_NO
     TERM_NO2 = [0] * back_NO2
@@ -274,11 +286,22 @@ while True:
             data[back - 1 - k] = float(table[9][s + (back_max - back) + k])
         for n in range(back):
             y += data[n] * term[n]
+        
+        for k in range(back_2):
+            data_2[back_2 - 1 - k] = float(table[9][s + (back_max - back_2) + k])
+        for n in range(back_2):
+            y += (data_2[n]**2) * term_2[n]
+
 
         for k in range(back_10):
             data_10[back_10 - 1 - k] = float(table[9-1][s + (back_max - back_10) + k])
         for n in range(back_10):
             y += data_10[n] * term_10[n]
+        
+        for k in range(back_10_2):
+            data_10_2[back_10_2 - 1 - k] = float(table[9-1][s + (back_max - back_10_2) + k])
+        for n in range(back_10_2):
+            y += (data_10_2[n] ** 2) * term_10_2[n]
 
         for k in range(back_RH):
             data_RH[back_RH - 1 - k] = float(table[9+2][s + (back_max - back_RH) + k])
@@ -365,6 +388,10 @@ while True:
         B += (-2 * (_y - y))
         for n in range(back):
             TERM[n] += 2 * (_y - y) * (-data[n])
+        for n in range(back_2):
+            TERM_2[n] += 2 * (_y - y) * (-(data_2[n] ** 2))
+        for n in range(back_10_2):
+            TERM_10_2[n] += 2 * (_y - y) * (-(data_10_2[n] ** 2))
         for n in range(back_10):
             TERM_10[n] += 2 * (_y - y) * (-data_10[n])
         for n in range(back_RH):
@@ -496,12 +523,13 @@ while True:
     adjust_grad_B = B/(fudge_factor + historical_grad_B ** 0.5)
     b = b - master_stepsize * adjust_grad_B
     adjust_grad = [0] * back
+    adjust_grad_2 = [0] * back_2
+    adjust_grad_10_2 = [0] * back_10_2
     adjust_grad_10 = [0] * back_10
     adjust_grad_RH = [0] * back_RH
     adjust_grad_NO = [0] * back_NO
     adjust_grad_NO2 = [0] * back_NO2
     adjust_grad_NOx = [0] * back_NOx
-    adjust_grad_RH = [0] * back_RH
     adjust_grad_O3 = [0] * back_O3
     adjust_grad_SO2 = [0] * back_SO2
     adjust_grad_CO = [0] * back_CO
@@ -525,6 +553,16 @@ while True:
         term[j] = term[j] - master_stepsize * adjust_grad[j]
         term[j] += alpha * m
     
+    for j in range(back_2):
+        if grad_2[j] == 0:
+            grad_2[j] = TERM_2[j] **2
+        else:
+            grad_2[j] += autocorr * grad_2[j] + (1- autocorr) * TERM_2[j] ** 2
+        adjust_grad_2[j] = TERM_2[j]/(fudge_factor + grad_2[j] ** 0.5)
+        m = term_2[j]
+        term_2[j] = term_2[j] - master_stepsize * adjust_grad_2[j]
+        term_2[j] += alpha * m
+    
     for j in range(back_10):
         if grad_10[j] == 0:
             grad_10[j] = TERM_10[j] **2
@@ -534,6 +572,16 @@ while True:
         m = term_10[j]
         term_10[j] = term_10[j] - master_stepsize * adjust_grad_10[j]
         term_10[j] += alpha * m
+    
+    for j in range(back_10_2):
+        if grad_10_2[j] == 0:
+            grad_10_2[j] = TERM_10_2[j] **2
+        else:
+            grad_10_2[j] += autocorr * grad_10_2[j] + (1- autocorr) * TERM_10_2[j] ** 2
+        adjust_grad_10_2[j] = TERM_10_2[j]/(fudge_factor + grad_10_2[j] ** 0.5)
+        m = term_10_2[j]
+        term_10_2[j] = term_10_2[j] - master_stepsize * adjust_grad_10_2[j]
+        term_10_2[j] += alpha * m
     
     for j in range(back_RH):
         if grad_RH[j] == 0:
@@ -717,11 +765,22 @@ for i in range(9, len(Test_table), 18):
         test_data[s] = float(Test_table[i][s + 11 - back])
     for n in range(back):
         y += test_data[n] * term[back - 1 -n]
+    
+    for s in range(back_2):
+        test_data_2[s] = float(Test_table[i][s + 11 - back_2])
+    for n in range(back_2):
+        y += (test_data_2[n] ** 2) * term_2[back_2 - 1 - n]
 
     for s in range(back_10):
         test_data_10[s] = float(Test_table[i-1][s + 11 - back_10])
     for n in range(back_10):
         y += test_data_10[n] * term_10[back_10 - 1 -n]
+    
+    for s in range(back_10_2):
+        test_data_10_2[s] = float(Test_table[i-1][s + 11 - back_10_2])
+    for n in range(back_10_2):
+        y += (test_data_10_2[n] ** 2) * term_10_2[back_10_2 - 1 - n]
+
 
     for s in range(back_RH):
         test_data_RH[s] = float(Test_table[i+2][s + 11 - back_RH])

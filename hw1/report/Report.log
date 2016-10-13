@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.99992 (TeX Live 2015) (preloaded format=xelatex 2016.4.6)  13 OCT 2016 15:26
+This is XeTeX, Version 3.14159265-2.6-0.99992 (TeX Live 2015) (preloaded format=xelatex 2016.4.6)  14 OCT 2016 00:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1565,12 +1565,7 @@ LaTeX Font Warning: Font shape `EU1/WenQuanYiMicroHei(0)/bx/n' undefined
 116.
 
 
-Overfull \hbox (9.44817pt too wide) in paragraph at lines 151--161
-[] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 151--161
+Underfull \hbox (badness 10000) in paragraph at lines 151--162
 
  []
 
@@ -1591,7 +1586,7 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 Here is how much of TeX's memory you used:
  41369 strings out of 493632
  960230 string characters out of 6144723
- 1094108 words of memory out of 5000000
+ 1095106 words of memory out of 5000000
  44261 multiletter control sequences out of 15000+600000
  9977 words of font info for 56 fonts, out of 8000000 for 9000
  1328 hyphenation exceptions out of 8191

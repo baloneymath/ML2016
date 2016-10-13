@@ -151,13 +151,14 @@ the above equations is the main idea of linear regression and gradient descent, 
 \n The way I design this program is, first chain all the training data together, I create a table includes 18 arrays which contains different features respectively, then append all the data to the corresponding array. The next step is to decide which feature to use and how many hours(from 0 to 9) to trace back to construct the model. In addition to these features, I also use the method of \textbf{Momentum} and \textbf{Adagrad} to improve the efficiency of gradient descent. The final design of this program is with trace back features: (Since term $RAINFALL$ in training data has none numerical value 'NR', I change 'NR' to 0)\\
 \begin{tabular}[t]{|l|c|c|c|c|c|c|c|c|c|c|}
 	\hline
-	feature & $PM2.5$ & $PM10$ & $NO_2$ & $O_3$ & $WIND\_SPEED$ & $WS\_HR$ & $CH_4$ & 	$RAINFALL$\\
+	feature & $PM2.5$ & $PM10$ & $quad PM2.5$ & $quad PM10$ & $O3$ &$RAINFALL$\\
 	\hline 
-	trace back & 9 & 5 & 4 & 3 & 2 & 1 & 1 & 2\\
+	trace back & 9 & 5 & 4 & 2 & 3 & 2\\
 	\hline
 \end{tabular} 
 \\ \\ 
-\n (My best grade on kaggle is base on this model.)
+\n ($quad$ means to use the quadratic term)\\
+\n I use the quadratic term because I found that if not considering it, the model may overfit some of the training data.
 
 \section{Regularization}
 \n Regularization is to add an extra term to the loss function to make it smoother, now the loss function is written as

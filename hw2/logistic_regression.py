@@ -13,7 +13,7 @@ with open(train_file, 'r') as f:
         tokens = line.split(',')
         train_table.append(tokens)
 ########################################
-iteration = 1800
+iteration = 1500
 master_stepsize = 1e-1
 autocorr = 0.00
 epsilon = 0

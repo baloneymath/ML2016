@@ -7,7 +7,7 @@ import random as rd
 train_file = sys.argv[1]
 
 ########## setting ###########################
-Tree_Num = 1
+Tree_Num = 128
 split_Num = 120
 data_range = [2500, 3000]
 f_range = [11, 13]

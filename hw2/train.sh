@@ -1,1 +1,1 @@
-time pypy logistic_regression.py $1 $2
+time python logistic_regression.py $1 $2

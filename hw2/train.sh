@@ -1,1 +1,1 @@
-time pypy method2.py $1 $2
+time python method2.py $1 $2

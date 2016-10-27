@@ -1,1 +1,1 @@
-time pypy predict2.py $1 $2 $3
+time python predict2.py $1 $2 $3

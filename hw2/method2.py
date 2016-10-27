@@ -4,6 +4,8 @@ import sys
 import math
 import random as rd
 
+sys.setrecursionlimit(2048)
+
 train_file = sys.argv[1]
 
 ########## setting ###########################

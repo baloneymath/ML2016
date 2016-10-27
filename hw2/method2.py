@@ -7,7 +7,7 @@ import random as rd
 train_file = sys.argv[1]
 
 ########## setting ###########################
-Tree_Num = 1024
+Tree_Num = 1
 split_Num = 120
 data_range = [2500, 3000]
 f_range = [11, 13]
@@ -140,7 +140,7 @@ class Node(object):
             self.left.printindex()
             self.right.printindex()
 
-    def recursive_outfile(self):
+    def recursive_outfile(self, ofile):
         ofile.write(str(self.index) + ',')
         if self.label == None:
             ofile.write(str(self.left.index) + ',')
@@ -154,8 +154,8 @@ class Node(object):
         ofile.write(str(self.splitpoint))
         ofile.write('\n')
         if self.label == None:
-            self.left.recursive_outfile()
-            self.right.recursive_outfile()
+            self.left.recursive_outfile(ofile)
+            self.right.recursive_outfile(ofile)
 
 class Tree(Node):
     def __init__(self, d_set):
@@ -168,10 +168,10 @@ class Tree(Node):
     def compare(self, sample):
         a = self.root.find(sample)
         return a.label
-    def recursive_out(self):
+    def recursive_out(self, ofile):
         ofile.write('-')
         ofile.write('\n')
-        self.root.recursive_outfile()
+        self.root.recursive_outfile(ofile)
         ofile.write('-')
         ofile.write('\n')
 
@@ -263,5 +263,5 @@ print "Training Acc: ", cnt / len(train_table)
 ############## Output File ############################
 ofile = open(sys.argv[2], 'w')
 for i in range(len(Trees)):
-    Trees[i].recursive_out()
+    Trees[i].recursive_out(ofile)
 print "model builded !!"

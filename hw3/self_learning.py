@@ -10,16 +10,17 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import *
 from keras.utils import np_utils
 from keras import backend as K
+from keras.models import load_model
 
 #os.environ["THEANO_FLAGS"] = "device=gpu0"
 
 
-batch_size = 50
+batch_size = 32
 nb_classes = 10
-nb_epoch = 30
+nb_epoch = 65
 data_augmentation = False
-iteration = 5
-threshold = 0.975
+iteration = 7
+threshold = 0.983
 
 # input image dimensions
 img_rows, img_cols = 32, 32
@@ -27,6 +28,7 @@ img_channels = 3
 input_shape = (img_channels, img_rows, img_cols)
 
 data_repo = sys.argv[1]
+model_name = sys.argv[2]
 
 ########## load raw data #########################################
 def load_data(sig):
@@ -42,12 +44,10 @@ def load_data(sig):
 
 l_data = load_data('l')
 ul_data = load_data('ul')
-test_data = load_data('t')
 
 x_train = []
 y_train = []
 x_ul = []
-x_test = []
 
 
 # initialize x_train, y_train, x_test
@@ -61,60 +61,50 @@ for i in range(len(ul_data)):
     x_ul.append(ul_data[i])
 
 
-for i in test_data['data']:
-        x_test.append(i)
 
 x_train = np.array(x_train)
 y_train = np.array(y_train)
 x_ul = np.array(x_ul)
-x_test = np.array(x_test)
 
 if K.image_dim_ordering() == 'th':
     x_train = x_train.reshape(x_train.shape[0], img_channels, img_rows, img_cols)
-    x_test = x_test.reshape(x_test.shape[0], img_channels, img_rows, img_cols)
     x_ul = x_ul.reshape(x_ul.shape[0], img_channels, img_rows, img_cols)
     input_shape = (img_channels, img_rows, img_cols)
 else:
     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, img_channels)
-    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, img_channels)
     x_ul = x_ul.reshape(x_ul.shape[0], img_rows, img_cols, img_channels)
     input_shape = (img_rows, img_cols, img_channels)
 
 x_train = x_train.astype('float32')
 y_train = y_train.astype('float32')
 x_ul = x_ul.astype('float32')
-x_test = x_test.astype('float32')
 
 x_train /= 255
 x_ul /= 255
-x_test /= 255
 
 print 'x_train shape: ', x_train.shape
 print x_train.shape[0], 'train samples'
 print x_ul.shape[0], 'unlabel samples'
-print x_test.shape[0], 'test samples'
 
 
 # define model
 model = Sequential()
 
-model.add(Convolution2D(32, 3, 3, input_shape = input_shape))
+model.add(Convolution2D(32, 2, 2, border_mode = 'same', input_shape = input_shape))
 model.add(Activation('relu'))
-model.add(Convolution2D(32, 3, 3))
+model.add(Convolution2D(32, 2, 2))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size = (2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Convolution2D(64, 3, 3))
+model.add(Convolution2D(64, 2, 2, border_mode = 'same'))
 model.add(Activation('relu'))
-model.add(Convolution2D(64, 3, 3))
+model.add(Convolution2D(64, 2, 2))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size = (2, 2)))
 model.add(Dropout(0.25))
 
 model.add(Flatten())
-model.add(Dense(output_dim = 512))
-model.add(Activation('relu'))
 model.add(Dense(output_dim = 512))
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
@@ -123,7 +113,7 @@ model.add(Dense(output_dim = nb_classes))
 model.add(Activation('softmax'))
 
 model.compile(loss = 'categorical_crossentropy',
-                optimizer = 'adam',
+                optimizer = 'adadelta',
                 metrics = ['accuracy'])
 
 if data_augmentation == True:
@@ -147,6 +137,9 @@ if data_augmentation == True:
 else:
     print "No data augmentation..."
     for i in range(iteration):
+        if i > 0:
+            nb_epoch = 10
+            threshold -= i * 0.05
         model.fit(x_train, y_train,
                 batch_size = batch_size,
                 nb_epoch = nb_epoch,
@@ -180,6 +173,8 @@ else:
         x_ul = np.delete(x_ul, t, axis = 0)
         print "x_ul shape", x_ul.shape
 
+model.save(model_name)
+'''
 result = model.predict(x_test)
 out = []
 for i in range(len(result)):
@@ -196,5 +191,5 @@ for i in range(len(out)):
     ofile.write(str(i) + ',')
     ofile.write(str(out[i]))
     ofile.write('\n')
-
+'''
 

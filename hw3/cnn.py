@@ -14,10 +14,10 @@ from keras import backend as K
 #os.environ["THEANO_FLAGS"] = "device=gpu0"
 
 
-batch_size = 50
+batch_size = 32
 nb_classes = 10
-nb_epoch = 50
-data_augmentation = True
+nb_epoch = 60
+data_augmentation = False
 
 # input image dimensions
 img_rows, img_cols = 32, 32
@@ -92,25 +92,21 @@ print x_test.shape[0], 'test samples'
 # define model
 model = Sequential()
 
-model.add(Convolution2D(32, 3, 3, input_shape = input_shape))
+model.add(Convolution2D(32, 2, 2, border_mode = 'same', input_shape = input_shape))
 model.add(Activation('relu'))
-model.add(Convolution2D(32, 3, 3))
+model.add(Convolution2D(32, 2, 2))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size = (2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Convolution2D(64, 3, 3))
+model.add(Convolution2D(64, 2, 2, border_mode = 'same'))
 model.add(Activation('relu'))
-model.add(Convolution2D(64, 3, 3))
+model.add(Convolution2D(64, 2, 2))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size = (2, 2)))
 model.add(Dropout(0.25))
 
 model.add(Flatten())
-model.add(Dense(output_dim = 512))
-model.add(Activation('relu'))
-model.add(Dense(output_dim = 512))
-model.add(Activation('relu'))
 model.add(Dense(output_dim = 512))
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
@@ -156,7 +152,7 @@ for i in range(len(result)):
             m = result[i][j]
             idx = j
     out.append(idx)
-ofile = open("prediction.csv", "wb")
+ofile = open("supervised.csv", "wb")
 ofile.write("ID,class")
 ofile.write('\n')
 for i in range(len(out)):

@@ -44,16 +44,6 @@ y_train = []
 x_ul = []
 y_ul = []
 
-# Functions
-def find_max_idx(data) :
-    max = -1.0
-    idx = -1
-    for i in range(nb_classes) :
-        if data[i] > max :
-            max = data[i]
-            idx = i
-    return idx
-
 
 for i in range(nb_classes):
     temp = [0] * 10
@@ -194,18 +184,6 @@ model.fit_generator(datagen.flow(x_train, y_train,
                     batch_size = batch_size),
                     samples_per_epoch = x_train.shape[0],
                     nb_epoch = nb_epoch)
-
-x_test = x_test.reshape(len(x_test), 3, 32, 32)
-result = model.predict(x_test)
-
-ofile = open('m2.csv', 'wb')
-ofile.write('ID,class')
-ofile.write('\n')
-for i in range(len(x_test)):
-    ans = find_max_idx(result[i])
-    ofile.write(str(i) + ',')
-    ofile.write(str(ans) + '\n')
-ofile.close()
 
 model.save(sys.argv[2])
 

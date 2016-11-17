@@ -16,8 +16,8 @@ from keras import backend as K
 
 batch_size = 32
 nb_classes = 10
-nb_epoch = 60
-data_augmentation = False
+nb_epoch = 250
+data_augmentation = True
 
 # input image dimensions
 img_rows, img_cols = 32, 32
@@ -77,12 +77,10 @@ else:
     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, img_channels)
     input_shape = (img_rows, img_cols, img_channels)
 
-x_train = x_train.astype('float32')
+x_train = x_train.astype('float32') / 255
 y_train = y_train.astype('float32')
-x_test = x_test.astype('float32')
+x_test = x_test.astype('float32') / 255
 
-x_train /= 255
-x_test /= 255
 
 print 'x_train shape: ', x_train.shape
 print x_train.shape[0], 'train samples'
@@ -92,30 +90,35 @@ print x_test.shape[0], 'test samples'
 # define model
 model = Sequential()
 
-model.add(Convolution2D(32, 2, 2, border_mode = 'same', input_shape = input_shape))
+model.add(Convolution2D(32, 3, 3, input_shape = input_shape))
 model.add(Activation('relu'))
-model.add(Convolution2D(32, 2, 2))
+
+model.add(Convolution2D(32, 3, 3))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size = (2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Convolution2D(64, 2, 2, border_mode = 'same'))
-model.add(Activation('relu'))
-model.add(Convolution2D(64, 2, 2))
+model.add(Convolution2D(64, 3, 3))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size = (2, 2)))
 model.add(Dropout(0.25))
+
+
 
 model.add(Flatten())
 model.add(Dense(output_dim = 512))
 model.add(Activation('relu'))
-model.add(Dropout(0.5))
+model.add(Dense(output_dim = 256))
+model.add(Activation('relu'))
+model.add(Dense(output_dim = 128))
+model.add(Activation('relu'))
+model.add(Dropout(0.25))
 
 model.add(Dense(output_dim = nb_classes))
 model.add(Activation('softmax'))
 
 model.compile(loss = 'categorical_crossentropy',
-                optimizer = 'adam',
+                optimizer = 'adadelta',
                 metrics = ['accuracy'])
 
 if data_augmentation == True:
@@ -126,7 +129,7 @@ if data_augmentation == True:
             featurewise_std_normalization = False,  # divide inputs by std of the dataset
             samplewise_std_normalization = False,  # devide each input by its std
             zca_whitening = False,  # apply ZCA whitening
-            rotation_range = 0,  # randomly rotate images in range
+            rotation_range = 12,  # randomly rotate images in range
             width_shift_range = 0.1,  # randomly shift images horizontally
             height_shift_range = 0.1,  # randomly shift images vertically
             horizontal_flip = True,  # randomly flip images

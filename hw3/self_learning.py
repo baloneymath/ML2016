@@ -17,10 +17,10 @@ from keras.models import load_model
 
 batch_size = 32
 nb_classes = 10
-nb_epoch = 65
-data_augmentation = False
-iteration = 7
-threshold = 0.983
+nb_epoch = 250
+data_augmentation = True
+iteration = 5
+threshold = 0.98
 
 # input image dimensions
 img_rows, img_cols = 32, 32
@@ -90,16 +90,15 @@ print x_ul.shape[0], 'unlabel samples'
 # define model
 model = Sequential()
 
-model.add(Convolution2D(32, 2, 2, border_mode = 'same', input_shape = input_shape))
+model.add(Convolution2D(32, 3, 3, border_mode = 'same', input_shape = input_shape))
 model.add(Activation('relu'))
-model.add(Convolution2D(32, 2, 2))
+
+model.add(Convolution2D(32, 3, 3))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size = (2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Convolution2D(64, 2, 2, border_mode = 'same'))
-model.add(Activation('relu'))
-model.add(Convolution2D(64, 2, 2))
+model.add(Convolution2D(64, 3, 3))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size = (2, 2)))
 model.add(Dropout(0.25))
@@ -107,13 +106,17 @@ model.add(Dropout(0.25))
 model.add(Flatten())
 model.add(Dense(output_dim = 512))
 model.add(Activation('relu'))
-model.add(Dropout(0.5))
+model.add(Dense(output_dim = 256))
+model.add(Activation('relu'))
+model.add(Dense(output_dim = 128))
+model.add(Activation('relu'))
+model.add(Dropout(0.25))
 
 model.add(Dense(output_dim = nb_classes))
 model.add(Activation('softmax'))
 
 model.compile(loss = 'categorical_crossentropy',
-                optimizer = 'adadelta',
+                optimizer = 'adam',
                 metrics = ['accuracy'])
 
 if data_augmentation == True:
@@ -124,54 +127,56 @@ if data_augmentation == True:
             featurewise_std_normalization = False,  # divide inputs by std of the dataset
             samplewise_std_normalization = False,  # devide each input by its std
             zca_whitening = False,  # apply ZCA whitening
-            rotation_range = 0,  # randomly rotate images in range
+            rotation_range = 12,  # randomly rotate images in range
             width_shift_range = 0.1,  # randomly shift images horizontally
             height_shift_range = 0.1,  # randomly shift images vertically
             horizontal_flip = True,  # randomly flip images
             vertical_flip = False)  # randomly flip images
     datagen.fit(x_train)
-    model.fit_generator(datagen.flow(x_train, y_train,
-                        batch_size = batch_size),
-                        samples_per_epoch = x_train.shape[0],
-                        nb_epoch = nb_epoch)
 else:
-    print "No data augmentation..."
-    for i in range(iteration):
-        if i > 0:
-            nb_epoch = 10
-            threshold -= i * 0.05
+    print 'No data augmentation...'
+
+for i in range(iteration):
+    if i > 0:
+        nb_epoch = 100
+    if data_augmentation is True:
+        model.fit_generator(datagen.flow(x_train, y_train,
+                            batch_size = batch_size),
+                            samples_per_epoch = x_train.shape[0],
+                            nb_epoch = nb_epoch)
+    else:
         model.fit(x_train, y_train,
                 batch_size = batch_size,
                 nb_epoch = nb_epoch,
                 shuffle = True)
-        r = model.predict(x_ul)
-        tmp_x = []
-        tmp_y = []
-        t = []
-        for j in range(len(r)):
-            m, idx = 0, 0
-            for k in range(len(r[j])):
-                if r[j][k] > m:
-                    m = r[j][k]
-                    idx = k
-            if m > threshold:
-                temp = [0] * nb_classes
-                temp[idx] = 1
-                tmp_x.append(x_ul[j])
-                tmp_y.append(temp)
-                t.append(j)
-        print "x_ul shape", x_ul.shape
-        if len(tmp_x) > 0 and len(tmp_y) > 0:
-            tmp_x = np.array(tmp_x)
-            tmp_y = np.array(tmp_y)
-            print "tmp_x shape", tmp_x.shape
-            print "tmp_y shape", tmp_y.shape
-            x_train = np.concatenate((x_train, tmp_x), axis = 0)
-            y_train = np.concatenate((y_train, tmp_y), axis = 0)
-        print "x_train shape", x_train.shape
-        print "y_train shape", y_train.shape
-        x_ul = np.delete(x_ul, t, axis = 0)
-        print "x_ul shape", x_ul.shape
+    r = model.predict(x_ul)
+    tmp_x = []
+    tmp_y = []
+    t = []
+    for j in range(len(r)):
+        m, idx = 0, 0
+        for k in range(len(r[j])):
+            if r[j][k] > m:
+                m = r[j][k]
+                idx = k
+        if m > threshold:
+            temp = [0] * nb_classes
+            temp[idx] = 1
+            tmp_x.append(x_ul[j])
+            tmp_y.append(temp)
+            t.append(j)
+    print "x_ul shape", x_ul.shape
+    if len(tmp_x) > 0 and len(tmp_y) > 0:
+        tmp_x = np.array(tmp_x)
+        tmp_y = np.array(tmp_y)
+        print "tmp_x shape", tmp_x.shape
+        print "tmp_y shape", tmp_y.shape
+        x_train = np.concatenate((x_train, tmp_x), axis = 0)
+        y_train = np.concatenate((y_train, tmp_y), axis = 0)
+    print "x_train shape", x_train.shape
+    print "y_train shape", y_train.shape
+    x_ul = np.delete(x_ul, t, axis = 0)
+    print "x_ul shape", x_ul.shape
 
 model.save(model_name)
 '''

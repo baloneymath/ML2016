@@ -20,13 +20,13 @@ data_repo = sys.argv[1]
 def load_data(sig):
     if sig == 'l':
         print "Loading data from all_label.p ..."
-        return pickle.load(open(data_repo + "all_label.p", "rb"))
+        return pickle.load(open(data_repo + "/all_label.p", "rb"))
     elif sig == 'ul':
         print "Loading data from all_unlabel.p ..."
-        return pickle.load(open(data_repo + "all_unlabel.p", "rb"))
+        return pickle.load(open(data_repo + "/all_unlabel.p", "rb"))
     elif sig == 't':
         print "Loading data from test.p ..."
-        return pickle.load(open(data_repo + "test.p", "rb"))
+        return pickle.load(open(data_repo + "/test.p", "rb"))
 
 nb_classes = 10
 batch_size = 128

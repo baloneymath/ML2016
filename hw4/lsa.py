@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 import string
-import csv
 import nltk
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -17,7 +16,7 @@ from sklearn.metrics import pairwise_distances_argmin
 from sklearn.cluster import KMeans, MiniBatchKMeans, DBSCAN
 from sklearn.manifold import TSNE
 from nltk.stem.lancaster import LancasterStemmer
-from nltk.stem.porter import *
+from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 
 data_repo = sys.argv[1]
@@ -30,14 +29,14 @@ max_df = 0.4
 min_df = 2
 
 # lsa settings
-n_components = 18
+n_components = 20
 
 # k-means settings
-n_clusters = 104
+n_clusters = 100
 n_init = 100
 minibatch = False
 batch_size = 2000
-max_iter = 100
+max_iter = 1000
 verbose = False
 
 st = PorterStemmer()
@@ -86,14 +85,15 @@ print(all_titles[0])
 
 print("Extracting features from the training dataset using a sparse vectorizer")
 t0 = time()
-vectorizer = TfidfVectorizer(input = docs, max_df = max_df, max_features = max_features,
+vectorizer = TfidfVectorizer(max_df = max_df, max_features = max_features,
                              min_df = min_df, stop_words = 'english',
                              use_idf = True
                              )
 print("done in %fs" % (time() - t0))
 print()
 
-X = vectorizer.fit_transform(all_titles)
+vectorizer.fit(all)
+X = vectorizer.transform(all_titles)
 print("n_samples: %d, n_features: %d" % X.shape)
 
 if n_components:
@@ -152,7 +152,7 @@ for k, col in zip(range(n_clusters), colors_):
     my_members = k_means_labels == k
     cluster_center = k_means_cluster_centers[k]
     ax.plot(X[my_members, 0], X[my_members, 1], 'o', markerfacecolor = col,
-            markersize = 2)
+            markersize = 4)
     ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor = col,
              markeredgecolor = 'k', markersize = 8)
 ax.set_title('KMeans')

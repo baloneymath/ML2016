@@ -15,8 +15,10 @@ from sklearn import metrics
 from sklearn.metrics import pairwise_distances_argmin
 from sklearn.cluster import KMeans, MiniBatchKMeans, DBSCAN
 from sklearn.manifold import TSNE
+from sklearn.metrics.pairwise import cosine_similarity
 from nltk.stem.lancaster import LancasterStemmer
 from nltk.stem.porter import PorterStemmer
+from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
 
 data_repo = sys.argv[1]
@@ -25,26 +27,30 @@ stemmed = True
 
 # Tf-Idf settings
 max_features = None
-max_df = 0.4
-min_df = 2
+max_df = 0.38
+min_df = 3
 
 # lsa settings
 n_components = 20
 
+# cosine similarity
+cos_min = 0.9
+
 # k-means settings
-n_clusters = 100
+use_kmeans = False
+n_clusters = 80
 n_init = 100
 minibatch = False
 batch_size = 2000
 max_iter = 1000
 verbose = False
 
-st = PorterStemmer()
+st = SnowballStemmer('english')
 
 all_titles = []
 docs = []
 
-stoplist = set('use definitly my you '.split())
+stoplist = "use list line file definately my you error get".split()
 
 print("Loading titles")
 with open(data_repo + "/title_StackOverflow.txt", 'r') as f:
@@ -52,8 +58,6 @@ with open(data_repo + "/title_StackOverflow.txt", 'r') as f:
         l = line.lower()
         l = l.translate(str.maketrans({key: ' ' for key in string.punctuation}))
         tokens = nltk.word_tokenize(l)
-        #tokens = [word for word in tokens if word not in stoplist]
-        tokens = [word for word in tokens if word not in stopwords.words('english')]
         tmp = ''
         if stemmed:
             for token in tokens:
@@ -61,16 +65,21 @@ with open(data_repo + "/title_StackOverflow.txt", 'r') as f:
         else:
             for token in tokens:
                 tmp += token + ' '
+        tokens = tmp.split()
+        tokens = [word for word in tokens if word not in stoplist]
+        tokens = [word for word in tokens if word not in stopwords.words('english')]
+        tmp = ''
+        for token in tokens:
+            tmp += token + ' '
         all_titles.append(tmp)
 
 print("Loading docs")
+
 with open(data_repo + "/docs.txt", 'r') as f:
     for line in f:
         l = line.lower()
         l = l.translate(str.maketrans({key: ' ' for key in string.punctuation}))
         tokens = nltk.word_tokenize(l)
-        #tokens = [word for word in tokens if word not in stoplist]
-        tokens = [word for word in tokens if word not in stopwords.words('english')]
         tmp = ''
         if stemmed:
             for token in tokens:
@@ -78,6 +87,12 @@ with open(data_repo + "/docs.txt", 'r') as f:
         else:
             for token in tokens:
                 tmp += token + ' '
+        tokens = tmp.split()
+        tokens = [word for word in tokens if word not in stoplist]
+        tokens = [word for word in tokens if word not in stopwords.words('english')]
+        tmp = ''
+        for token in tokens:
+            tmp += token + ' '
         docs.append(tmp)
 all = list(np.concatenate((all_titles, docs), axis = 0))
 
@@ -86,7 +101,7 @@ print(all_titles[0])
 print("Extracting features from the training dataset using a sparse vectorizer")
 t0 = time()
 vectorizer = TfidfVectorizer(max_df = max_df, max_features = max_features,
-                             min_df = min_df, stop_words = 'english',
+                             min_df = min_df, #stop_words = 'english',
                              use_idf = True
                              )
 print("done in %fs" % (time() - t0))
@@ -111,83 +126,76 @@ if n_components:
         int(explained_varience * 100)
     ))
     print()
+if use_kmeans:
+    if minibatch:
+        km = MiniBatchKMeans(n_clusters = n_clusters, init = 'k-means++',
+                             n_init = n_init, init_size = 1000, n_jobs = -1,
+                             batch_size = batch_size, verbose = verbose)
+    else:
+        km = KMeans(n_clusters = n_clusters, init = 'k-means++', n_jobs = -1,
+                    max_iter = max_iter, n_init = n_init, verbose = verbose)
 
-if minibatch:
-    km = MiniBatchKMeans(n_clusters = n_clusters, init = 'k-means++',
-                         n_init = n_init, init_size = 1000, n_jobs = -1,
-                         batch_size = batch_size, verbose = verbose)
-else:
-    km = KMeans(n_clusters = n_clusters, init = 'k-means++', n_jobs = -1,
-                max_iter = max_iter, n_init = n_init, verbose = verbose)
-
-print("Clustering sparse data with %s" % km)
-t0 = time()
-km.fit(X)
-print("done in %.3fs" % (time() - t0))
-print()
-
-print("Top terms per cluster:")
-if n_components:
-    original_space_centroids = svd.inverse_transform(km.cluster_centers_)
-    order_centroids = original_space_centroids.argsort()[:, ::-1]
-else:
-    order_centroids = km.cluster_centers_.argsort()[:, ::-1]
-
-terms = vectorizer.get_feature_names()
-for i in range(n_clusters):
-    print("Cluster %d:" % i, end = '')
-    for ind in order_centroids[i, :10]:
-        print(' %s' % terms[ind], end = '')
+    print("Clustering sparse data with %s" % km)
+    t0 = time()
+    km.fit(X)
+    print("done in %.3fs" % (time() - t0))
     print()
 
+    print("Top terms per cluster:")
+    if n_components:
+        original_space_centroids = svd.inverse_transform(km.cluster_centers_)
+        order_centroids = original_space_centroids.argsort()[:, ::-1]
+    else:
+        order_centroids = km.cluster_centers_.argsort()[:, ::-1]
 
-colors_ = colors.cnames.keys()
-fig = plt.figure(figsize = (10, 10))
-fig.subplots_adjust(left = 0.01, right = 0.99, bottom = 0.02, top = 0.9)
-k_means_cluster_centers = np.sort(km.cluster_centers_, axis = 0)
-k_means_labels = pairwise_distances_argmin(X, k_means_cluster_centers)
+    terms = vectorizer.get_feature_names()
+    for i in range(n_clusters):
+        print("Cluster %d:" % i, end = '')
+        for ind in order_centroids[i, :10]:
+            print(' %s' % terms[ind], end = '')
+        print()
+    exit(1)
+    colors_ = colors.cnames.keys()
+    fig = plt.figure(figsize = (10, 10))
+    fig.subplots_adjust(left = 0.01, right = 0.99, bottom = 0.02, top = 0.9)
+    k_means_cluster_centers = np.sort(km.cluster_centers_, axis = 0)
+    k_means_labels = pairwise_distances_argmin(X, k_means_cluster_centers)
 
-ax = fig.add_subplot(1, 1, 1)
-for k, col in zip(range(n_clusters), colors_):
-    my_members = k_means_labels == k
-    cluster_center = k_means_cluster_centers[k]
-    ax.plot(X[my_members, 0], X[my_members, 1], 'o', markerfacecolor = col,
-            markersize = 4)
-    ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor = col,
-             markeredgecolor = 'k', markersize = 8)
-ax.set_title('KMeans')
-ax.set_xticks(())
-ax.set_yticks(())
-plt.show()
+    ax = fig.add_subplot(1, 1, 1)
+    for k, col in zip(range(n_clusters), colors_):
+        my_members = k_means_labels == k
+        cluster_center = k_means_cluster_centers[k]
+        ax.plot(X[my_members, 0], X[my_members, 1], 'o', markerfacecolor = col,
+                markersize = 4)
+        ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor = col,
+                 markeredgecolor = 'k', markersize = 8)
+    ax.set_title('KMeans')
+    ax.set_xticks(())
+    ax.set_yticks(())
+    plt.show()
+else:
+    cos = cosine_similarity(X)
 
-'''
-result = km.predict(X)
 test = []
-ans = []
 with open(data_repo + "/check_index.csv", 'r') as f:
     for line in f:
         tokens = line.split(',')
         test.append(tokens)
-for i in range(1, len(test)):
-    #print(result[int(test[i][1])], result[int(test[i][2])])
-    if result[int(test[i][1])] == result[int(test[i][2])]:
-        ans.append(1)
-    else:
-        ans.append(0)
-'''
-test = []
-with open(data_repo + "/check_index.csv", 'r') as f:
-    for line in f:
-        tokens = line.split(',')
-        test.append(tokens)
-labels = np.array(km.labels_)
+#labels = np.array(km.labels_)
 
 ans = []
 for i in range(1, len(test)):
-    if labels[int(test[i][1])] == labels[int(test[i][2])]:
-        ans.append(1)
+    if use_kmeans:
+        if labels[int(test[i][1])] == labels[int(test[i][2])]:
+            ans.append(1)
+        else:
+            ans.append(0)
     else:
-        ans.append(0)
+        if cos[int(test[i][1]), int(test[i][2])] > cos_min:
+            ans.append(1)
+        else:
+            ans.append(0)
+
 
 ofile = open(prediction, 'w')
 ofile.write("ID,Ans\n")

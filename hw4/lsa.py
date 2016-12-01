@@ -34,7 +34,7 @@ min_df = 3
 n_components = 20
 
 # cosine similarity
-cos_min = 0.87
+cos_min = 0.9
 
 # k-means settings
 use_kmeans = False

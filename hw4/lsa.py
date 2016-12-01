@@ -27,14 +27,14 @@ stemmed = True
 
 # Tf-Idf settings
 max_features = None
-max_df = 0.38
+max_df = 0.35
 min_df = 3
 
 # lsa settings
 n_components = 20
 
 # cosine similarity
-cos_min = 0.9
+cos_min = 0.87
 
 # k-means settings
 use_kmeans = False
@@ -50,7 +50,8 @@ st = SnowballStemmer('english')
 all_titles = []
 docs = []
 
-stoplist = "use list line file definately my you error get".split()
+stoplist = "use list line file defin my you error get ".split()
+all_stop = stoplist + stopwords.words('english')
 
 print("Loading titles")
 with open(data_repo + "/title_StackOverflow.txt", 'r') as f:
@@ -66,8 +67,7 @@ with open(data_repo + "/title_StackOverflow.txt", 'r') as f:
             for token in tokens:
                 tmp += token + ' '
         tokens = tmp.split()
-        tokens = [word for word in tokens if word not in stoplist]
-        tokens = [word for word in tokens if word not in stopwords.words('english')]
+        tokens = [word for word in tokens if word not in all_stop]
         tmp = ''
         for token in tokens:
             tmp += token + ' '
@@ -88,8 +88,7 @@ with open(data_repo + "/docs.txt", 'r') as f:
             for token in tokens:
                 tmp += token + ' '
         tokens = tmp.split()
-        tokens = [word for word in tokens if word not in stoplist]
-        tokens = [word for word in tokens if word not in stopwords.words('english')]
+        tokens = [word for word in tokens if word not in all_stop]
         tmp = ''
         for token in tokens:
             tmp += token + ' '

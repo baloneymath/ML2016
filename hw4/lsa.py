@@ -153,7 +153,6 @@ if use_kmeans:
         for ind in order_centroids[i, :10]:
             print(' %s' % terms[ind], end = '')
         print()
-    exit(1)
     colors_ = colors.cnames.keys()
     fig = plt.figure(figsize = (10, 10))
     fig.subplots_adjust(left = 0.01, right = 0.99, bottom = 0.02, top = 0.9)

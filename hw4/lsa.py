@@ -171,6 +171,7 @@ if use_kmeans:
     ax.set_xticks(())
     ax.set_yticks(())
     plt.show()
+    labels = km.labels_
 else:
     cos = cosine_similarity(X)
 
@@ -179,7 +180,6 @@ with open(data_repo + "/check_index.csv", 'r') as f:
     for line in f:
         tokens = line.split(',')
         test.append(tokens)
-#labels = np.array(km.labels_)
 
 ans = []
 for i in range(1, len(test)):

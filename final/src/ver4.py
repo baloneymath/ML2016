@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-
+import sys
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
+repo = sys.argv[1]
+
 # Building the attack type map
 atk_type = {'normal': 0, 'dos': 1, 'u2r': 2, 'r2l': 3, 'probe': 4}
-atk_file = open("../data/training_attack_types.txt", 'r')
+atk_file = open(repo + "/training_attack_types.txt", 'r')
 
 for line in atk_file:
     ss = line.split()
@@ -15,8 +17,8 @@ print("Attack type mapping : ", atk_type)
 print()
 
 # Read data
-train_data = open("../data/train", 'r')
-test_data = open("../data/test.in", 'r')
+train_data = open(repo + "/train", 'r')
+test_data = open(repo + "/test.in", 'r')
 x = []
 y = []
 
@@ -56,7 +58,7 @@ Y = np.array(y)
 print("Start training...")
 classifiers = []
 for t in range(5):
-    forest = RandomForestClassifier(verbose = 1, n_estimators = 128, n_jobs = 8)
+    forest = RandomForestClassifier(verbose = 1, n_estimators = 100, n_jobs = -1)
 #n_estimators = 256, criterion = "gini",
 #                                max_features = "sqrt", n_jobs = 8,
 #                                min_impurity_split = 1e-7,
@@ -99,9 +101,11 @@ for i in range(5):
     results.append(r)
 
 # Weight tuning
-results[0] = results[0] * 0.5
+results[0] = results[0] * 0.4
+results[1] = results[1] * 1.2
 results[2] = results[2] * 20
 results[3] = (results[3] > 0).astype(int).astype(float)
+results[4] = results[4] * 1.2
 
 for r in results:
     r = r.tolist()
@@ -114,7 +118,7 @@ twos = 0
 threes = 0
 fours = 0
 
-with open("../output/out44.csv", 'w') as f:
+with open(sys.argv[2], 'w') as f:
     f.write("id,label\n")
     for i in range(len(result)):
         f.write("{0},{1}\n".format(i+1, result[i]))

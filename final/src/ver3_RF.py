@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-
+import sys
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
+repo = sys.argv[1]
+
 # Building the attack type map
 atk_type = {'normal': 0, 'dos': 1, 'u2r': 2, 'r2l': 3, 'probe': 4}
-atk_file = open("../data/training_attack_types.txt", 'r')
+atk_file = open(repo + "/training_attack_types.txt", 'r')
 
 for line in atk_file:
     ss = line.split()
@@ -15,8 +17,8 @@ print("Attack type mapping : ", atk_type)
 print()
 
 # Read data
-train_data = open("../data/train", 'r')
-test_data = open("../data/test.in", 'r')
+train_data = open(repo + "/train", 'r')
+test_data = open(repo + "/test.in", 'r')
 x = []
 y = []
 
@@ -88,7 +90,7 @@ X_test = np.array(x_test)
 
 result = forest.predict(X_test)
 
-with open("../output/out3.csv", 'w') as f:
+with open(sys.argv[2], 'w') as f:
     f.write("id,label\n")
     for i in range(len(result)):
         f.write("{0},{1}\n".format(i+1, result[i]))

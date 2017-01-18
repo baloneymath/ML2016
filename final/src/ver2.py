@@ -19,9 +19,11 @@ from keras import backend as K
 
 # load data
 
+repo = sys.argv[1]
+
 x_train = []
 print("Loading train")
-with open("../data/train", 'r') as f:
+with open(repo + "/train", 'r') as f:
     for line in f:
         line = line.strip()
         x_train.append(line.split(','))
@@ -110,7 +112,7 @@ model.fit(x_train, y_train,
 
 x_test = []
 print("Loading test.in")
-with open("../data/test.in", 'r') as f:
+with open(repo + "/test.in", 'r') as f:
     for line in f:
         line = line.strip()
         x_test.append(line.split(','))
@@ -140,7 +142,7 @@ for i in range(len(result)):
             m = result[i][j]
             idx = j
     out.append(idx)
-ofile = open("../output/out2.csv", 'w')
+ofile = open(sys.argv[2], 'w')
 ofile.write("id,label\n")
 for i in range(len(out)):
     ofile.write(str(i+1) + ',')

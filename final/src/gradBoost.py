@@ -1,12 +1,14 @@
 #! /usr/bin/env python3
-
+import sys
 import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.multiclass import OneVsRestClassifier
 
+repo = argv[1]
+
 # Building the attack type map
 atk_type = {'normal': 0, 'dos': 1, 'u2r': 2, 'r2l': 3, 'probe': 4}
-atk_file = open("../data/training_attack_types.txt", 'r')
+atk_file = open(repo + "/training_attack_types.txt", 'r')
 
 for line in atk_file:
     ss = line.split()
@@ -16,8 +18,8 @@ print("Attack type mapping : ", atk_type)
 print()
 
 # Read data
-train_data = open("../data/train", 'r')
-test_data = open("../data/test.in", 'r')
+train_data = open(repo + "/train", 'r')
+test_data = open(repo + "/test.in", 'r')
 x = []
 y = []
 
@@ -54,11 +56,11 @@ for line in train_data:
 X = np.array(x)
 
 print("Start training...")
-boost = OneVsRestClassifier(GradientBoostingClassifier(n_estimators = 700, criterion = "friedman_mse",
+boost = GradientBoostingClassifier(n_estimators = 700, criterion = "friedman_mse",
                                 learning_rate = 0.015, loss = "deviance",
                                 min_impurity_split = 1e-7, max_depth = 3,
                                 #subsample = 0.5, max_features = 'sqrt',
-                                verbose = 1), n_jobs = -1)
+                                verbose = 1)
 boost.fit(X, y)
 
 print("Start fitting...")
@@ -90,7 +92,7 @@ X_test = np.array(x_test)
 
 result = boost.predict(X_test)
 
-with open("../output/gradBoost.csv", 'w') as f:
+with open(sys.argv[2], 'w') as f:
     f.write("id,label\n")
     for i in range(len(result)):
         f.write("{0},{1}\n".format(i+1, result[i]))
